@@ -18,24 +18,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Check if main is behind ${{ env.SOURCE_BRANCH }}
-        id: check_behind
-        run: |
-          echo "🔍 Checking if 'main' is behind '${SOURCE_BRANCH}'..."
-          STATUS=$(gh api repos/${{ github.repository }}/compare/main...${SOURCE_BRANCH} --jq .status)
-          echo "🧪 Status: $STATUS"
-          if [[ "$STATUS" == "behind" || "$STATUS" == "diverged" ]]; then
-            echo "IS_BEHIND=true" >> $GITHUB_ENV
-            echo "✅ main is behind or diverged."
-          else
-            echo "IS_BEHIND=false" >> $GITHUB_ENV
-            echo "🛑 main is not behind."
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       - name: Try dry merge to detect conflicts
-        if: env.IS_BEHIND == 'true'
         run: |
           echo "🧪 Simulating merge..."
           git config --global user.email "you@example.com"
