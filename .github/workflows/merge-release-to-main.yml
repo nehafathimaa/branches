@@ -7,14 +7,14 @@ on:
         required: true
         type: string
     secrets:
-      merge_token:
+      MERGE_TOKEN:
         required: true
 
 jobs:
   merge_release_to_main:
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ secrets.merge_token }}
+      github-token: ${{ secrets.MERGE_TOKEN }}
       SOURCE_BRANCH: ${{ inputs.source_branch }}
 
     steps:
@@ -48,7 +48,7 @@ jobs:
       - name: Unlock main branch protection
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.merge_token }}
+          github-token: ${{ secrets.MERGE_TOKEN }}
           script: |
             const { owner, repo } = context.repo;
 
@@ -80,7 +80,7 @@ jobs:
       - name: Re-lock main branch protection
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.merge_token }}
+          github-token: ${{ secrets.MERGE_TOKEN }}
           script: |
             const { owner, repo } = context.repo;
             await github.rest.repos.updateBranchProtection({
