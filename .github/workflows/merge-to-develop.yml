@@ -40,7 +40,7 @@ jobs:
             const branchName = '${{ inputs.source_branch }}'.split('/').pop();
 
             const pr = await github.rest.pulls.create({
-              title: `Main to develop trace - ${branchName}`,
+              title: `Main to develop - ${branchName}`,
               owner,
               repo,
               head: 'develop',
