@@ -43,6 +43,13 @@ jobs:
             echo "❌ Conflict detected"
             exit 1
           fi
+      - name: Debug GH API access
+        run: |
+             echo "GH REPO = ${{ github.repository }}"
+             gh api /repos/${{ github.repository }}/branches/main/protection || echo "API failed"
+        env:
+             GH_TOKEN: ${{ secrets.merge_token }}
+
 
       - name: Unlock main branch protection
         if: steps.conflict-check.outputs.can_merge == 'true'
