@@ -6,6 +6,9 @@ on:
       source_branch:
         required: true
         type: string
+    secrets:
+      MB_TOKEN:
+        required: true
 
 
 jobs:
@@ -16,7 +19,7 @@ jobs:
       - name: Merge main into develop
         uses: actions/github-script@v6
         with:
-          #github-token: ${{ secrets.LOCK_TOKEN }}
+          github-token: ${{ secrets.MB_TOKEN }}
           script: |
             const { repo, owner } = context.repo;
 
@@ -31,7 +34,7 @@ jobs:
       - name: Create audit PR (optional trace)
         uses: actions/github-script@v6
         with:
-          #github-token: ${{ secrets.LOCK_TOKEN }}
+          github-token: ${{ secrets.MB_TOKEN }}
           script: |
             const { repo, owner } = context.repo;
             const branchName = '${{ inputs.source_branch }}'.split('/').pop();
