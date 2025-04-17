@@ -1,52 +1,57 @@
-name: Merge Release to Main
+name: Merge Release to Main (Shell-Based)
 
 on:
   workflow_call:
     inputs:
       source_branch:
-        description: 'Release branch to merge into main'
         required: true
         type: string
     secrets:
-        MERGE_TOKEN:
-           required: true
-
-  
+      merge_token:
+        required: true
 
 jobs:
   merge_release_to_main:
     runs-on: ubuntu-latest
     env:
+      GH_TOKEN: ${{ secrets.merge_token }}
       SOURCE_BRANCH: ${{ inputs.source_branch }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout full repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-
-
-      - name: Try dry merge to detect conflicts
+      - name: Configure git
         run: |
-          echo "🧪 Simulating merge..."
-          git config --global user.email "you@example.com"
+          git config --global user.email "bot@example.com"
           git config --global user.name "GitHub Action"
+
+      - name: Fetch branches and prepare
+        run: |
           git fetch origin main
           git fetch origin $SOURCE_BRANCH
+
+      - name: Check for conflicts (dry run)
+        id: conflict-check
+        run: |
           git checkout -b main-local origin/main
-          if git merge --no-commit --no-ff origin/$SOURCE_BRANCH --allow-unrelated-histories ; then
-            echo "✅ Merge successful"
-            echo "CAN_MERGE=true" >> $GITHUB_ENV
+          if git merge --no-commit --no-ff origin/$SOURCE_BRANCH; then
+            echo "can_merge=true" >> $GITHUB_OUTPUT
           else
-            echo "❌ Merge conflict detected!"
+            echo "❌ Conflict detected"
             exit 1
           fi
+
+
       - name: Unlock main branch protection
-        if: env.CAN_MERGE == 'true'
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.MERGE_TOKEN }}
+          github-token: ${{ secrets.merge_token }}
           script: |
             const { owner, repo } = context.repo;
+
             await github.rest.repos.updateBranchProtection({
               owner,
               repo,
@@ -58,27 +63,24 @@ jobs:
               allow_force_pushes: true,
               allow_deletions: false
             });
+
             console.log("🔓 Main branch protection relaxed for merge.");
-      - name: Merge release into main
-        if: env.CAN_MERGE == 'true'
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.MERGE_TOKEN }}
-          script: |
-            const { owner, repo } = context.repo;
-            const sourceBranch = '${{ env.SOURCE_BRANCH }}';
-            await github.rest.repos.merge({
-              owner,
-              repo,
-              base: 'main',
-              head: sourceBranch,
-              commit_message: `✅ Automated clean merge of ${sourceBranch} into main`
-            });
+
+
+      - name: Merge and push to main
+        if: steps.conflict-check.outputs.can_merge == 'true'
+        run: |
+           git checkout main || git checkout -b main origin/main  
+           git stash --include-untracked  # Stash local changes to avoid merge conflicts
+           git merge --no-commit --no-ff origin/$SOURCE_BRANCH
+           git commit -m "✅ Merged $SOURCE_BRANCH into main (shell workflow)"
+           git push https://${{ secrets.merge_token }}@github.com/${{ github.repository }}.git main  
+ 
+
       - name: Re-lock main branch protection
-        if: env.CAN_MERGE == 'true'
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.MERGE_TOKEN }}
+          github-token: ${{ secrets.merge_token }}
           script: |
             const { owner, repo } = context.repo;
             await github.rest.repos.updateBranchProtection({
