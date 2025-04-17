@@ -41,7 +41,7 @@ jobs:
         if: env.CAN_MERGE == 'true'
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.LOCK_TOKEN }}
           script: |
             const { owner, repo } = context.repo;
             await github.rest.repos.updateBranchProtection({
@@ -60,7 +60,7 @@ jobs:
         if: env.CAN_MERGE == 'true'
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.LOCK_TOKEN }}
           script: |
             const { owner, repo } = context.repo;
             const sourceBranch = '${{ env.SOURCE_BRANCH }}';
@@ -75,7 +75,7 @@ jobs:
         if: env.CAN_MERGE == 'true'
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.LOCK_TOKEN }}
           script: |
             const { owner, repo } = context.repo;
             await github.rest.repos.updateBranchProtection({
