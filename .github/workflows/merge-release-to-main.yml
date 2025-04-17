@@ -52,18 +52,25 @@ jobs:
 
 
       - name: Unlock main branch protection
-        run: |
-          echo "🔓 Unlocking protection for main..."
-           gh api --method PATCH /repos/${{ github.repository }}/branches/main/protection \
-             -H "Accept: application/vnd.github+json" \
-            -F required_status_checks='{"strict":false,"contexts":[]}' \
-           -F enforce_admins=false \
-           -F required_pull_request_reviews=null \
-            -F restrictions=null \
-           -F allow_force_pushes=true \
-             -F allow_deletions=false
-        env:
-           GH_TOKEN: ${{ secrets.merge_token }}
+        if: steps.try_merge.outputs.can_merge == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+
+            await github.rest.repos.updateBranchProtection({
+              owner,
+              repo,
+              branch: 'main',
+              required_status_checks: null,
+              enforce_admins: false,
+              required_pull_request_reviews: null,
+              restrictions: null,
+              allow_force_pushes: true,
+              allow_deletions: false
+            });
+
+            console.log("🔓 Main branch protection relaxed for merge.");
 
 
       - name: Merge and push to main
