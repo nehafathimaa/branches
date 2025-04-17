@@ -17,8 +17,6 @@ jobs:
     steps:
 
       - name: Try dry merge to detect conflicts
-        id: try_merge
-        if: steps.check_behind.outputs.is_behind == 'true'
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.merge_token }}
