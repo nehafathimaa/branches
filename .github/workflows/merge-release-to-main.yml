@@ -7,6 +7,9 @@ on:
         description: 'Release branch to merge into main'
         required: true
         type: string
+    secrets:
+      merge_token:
+        required: true
 
 jobs:
   merge_release_to_main:
