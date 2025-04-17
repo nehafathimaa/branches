@@ -1,4 +1,4 @@
-name: Merge main to develop (Shell)
+name: Merge main to develop
 
 on:
   workflow_call:
@@ -6,56 +6,46 @@ on:
       source_branch:
         required: true
         type: string
-    secrets:
-      LOCK_TOKEN:
-        required: true
 
 jobs:
   merge_main_to_develop:
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.LOCK_TOKEN }}
-      SOURCE_BRANCH: ${{ inputs.source_branch }}
 
     steps:
-      - name: Checkout full repo
-        uses: actions/checkout@v3
+      - name: Merge main into develop
+        uses: actions/github-script@v6
         with:
-          fetch-depth: 0
+          github-token: ${{ secrets.LOCK_TOKEN }}
+          script: |
+            const { repo, owner } = context.repo;
 
-      - name: Setup Git
-        run: |
-          git config --global user.email "bot@example.com"
-          git config --global user.name "GitHub Action"
+            await github.rest.repos.merge({
+              owner,
+              repo,
+              base: 'develop',
+              head: 'main',
+              commit_message: 'Merging main into develop automatically'
+            });
 
-      - name: Fetch and prepare
-        run: |
-          git fetch origin main
-          git fetch origin develop
-          git checkout -b develop-local origin/develop
+      - name: Create audit PR (optional trace)
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.LOCK_TOKEN }}
+          script: |
+            const { repo, owner } = context.repo;
+            const branchName = '${{ inputs.source_branch }}'.split('/').pop();
 
-      - name: Merge main → develop (dry run)
-        id: merge-check
-        run: |
-          if git merge --no-commit --no-ff origin/main; then
-            echo "can_merge=true" >> $GITHUB_OUTPUT
-          else
-            echo "❌ Conflict detected during merge to develop"
-            exit 1
-          fi
+            const pr = await github.rest.pulls.create({
+              title: `Main to develop trace - ${branchName}`,
+              owner,
+              repo,
+              head: 'develop',
+              base: 'develop'
+            });
 
-      - name: Finalize and push
-        if: steps.merge-check.outputs.can_merge == 'true'
-        run: |
-          git commit -m "🔄 Merged main into develop"
-          git push origin develop
-
-      - name: Create audit PR
-        if: steps.merge-check.outputs.can_merge == 'true'
-        run: |
-          gh pr create \
-            --title "Main to develop trace - $(echo $SOURCE_BRANCH | sed 's#.*/##')" \
-            --body "Auto PR from GitHub Actions" \
-            --base develop \
-            --head develop \
-            --label auto-pr
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: pr.data.number,
+              labels: ['auto-pr']
+            });
