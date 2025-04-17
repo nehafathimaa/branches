@@ -76,21 +76,29 @@ jobs:
       - name: Merge and push to main
         if: steps.conflict-check.outputs.can_merge == 'true'
         run: |
-          git commit -m "✅ Merged $SOURCE_BRANCH into main (shell workflow)"
+          git checkout main || git checkout -b main origin/main
+          git merge --no-ff origin/$SOURCE_BRANCH -m "✅ Merged $SOURCE_BRANCH into main (shell workflow)"
           git push origin main
 
       - name: Re-lock main branch protection
-        if: steps.conflict-check.outputs.can_merge == 'true'
-        run: |
-          gh api --method PUT /repos/${{ github.repository }}/branches/main/protection \
-            -H "Accept: application/vnd.github+json" \
-            -F required_status_checks.contexts='[]' \
-            -F enforce_admins=true \
-            -F required_pull_request_reviews.dismiss_stale_reviews=false \
-            -F required_pull_request_reviews.require_code_owner_reviews=false \
-            -F required_pull_request_reviews.required_approving_review_count=0 \
-            -F restrictions='null' \
-            -F allow_force_pushes=false \
-            -F allow_deletions=false
-        env:
-           GH_TOKEN: ${{ secrets.merge_token }}
+        if: steps.try_merge.outputs.can_merge == 'true'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.merge_token }}
+          script: |
+            const { owner, repo } = context.repo;
+            await github.rest.repos.updateBranchProtection({
+              owner,
+              repo,
+              branch: 'main',
+              required_status_checks: null,
+              enforce_admins: true,
+              required_pull_request_reviews: {
+                dismiss_stale_reviews: false,
+                require_code_owner_reviews: false,
+                required_approving_review_count: 0
+              },
+              restrictions: null,
+              allow_force_pushes: false,
+              allow_deletions: false
+            });
