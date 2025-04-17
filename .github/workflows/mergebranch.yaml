@@ -6,10 +6,11 @@ on:
 jobs:
 
 
+
   sync_to_develop:
     name: Trigger Main to Develop Merge Workflow
     uses: ./.github/workflows/merge-to-develop.yml
     with:
       source_branch: ${{ github.ref_name }}
-  #  secrets:
-   #   LOCK_TOKEN: ${{ secrets.LOCK_TOKEN }}
+    secrets:
+      LOCK_TOKEN: ${{ secrets.MB_TOKEN }}
