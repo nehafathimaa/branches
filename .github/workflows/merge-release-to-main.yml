@@ -8,10 +8,8 @@ on:
         required: true
         type: string
     secrets:
-        merge_token:
-           required: true
-
-  
+      merge_token:
+        required: true
 
 jobs:
   merge_release_to_main:
@@ -23,23 +21,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-
-
-      - name: Try dry merge to detect conflicts
+      - name: Check for conflicts (dry merge)
         run: |
-          echo "🧪 Simulating merge..."
           git config --global user.email "you@example.com"
           git config --global user.name "GitHub Action"
           git fetch origin main
           git fetch origin $SOURCE_BRANCH
           git checkout -b main-local origin/main
-          if git merge --no-commit --no-ff origin/$SOURCE_BRANCH  ; then
-            echo "✅ Merge successful"
+          if git merge --no-commit --no-ff origin/$SOURCE_BRANCH; then
             echo "CAN_MERGE=true" >> $GITHUB_ENV
           else
             echo "❌ Merge conflict detected!"
             exit 1
           fi
+
       - name: Unlock main branch protection
         if: env.CAN_MERGE == 'true'
         uses: actions/github-script@v6
@@ -58,22 +53,15 @@ jobs:
               allow_force_pushes: true,
               allow_deletions: false
             });
-            console.log("🔓 Main branch protection relaxed for merge.");
-      - name: Merge release into main
+
+      - name: No-commit merge of release into main
         if: env.CAN_MERGE == 'true'
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.merge_token }}
-          script: |
-            const { owner, repo } = context.repo;
-            const sourceBranch = '${{ env.SOURCE_BRANCH }}';
-            await github.rest.repos.merge({
-              owner,
-              repo,
-              base: 'main',
-              head: sourceBranch,
-              commit_message: `✅ Automated clean merge of ${sourceBranch} into main`
-            });
+        run: |
+          git checkout main
+          git merge --no-commit --no-ff origin/$SOURCE_BRANCH
+          git commit -m "✅ Merged ${SOURCE_BRANCH} into main (no-commit strategy)"
+          git push origin main
+
       - name: Re-lock main branch protection
         if: env.CAN_MERGE == 'true'
         uses: actions/github-script@v6
