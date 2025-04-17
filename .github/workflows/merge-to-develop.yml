@@ -6,6 +6,9 @@ on:
       source_branch:
         required: true
         type: string
+    secrets:
+      merge_token:
+        required: true
 
 jobs:
   merge_main_to_develop:
