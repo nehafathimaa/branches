@@ -74,13 +74,11 @@ jobs:
 
 
       - name: Merge and push to main
-        if: steps.conflict-check.outputs.can_merge == 'true'
         run: |
-          git checkout -B main-local origin/main
-          git reset --hard
-          git merge --no-commit --no-ff origin/$SOURCE_BRANCH
-          git commit -m "✅ Merged $SOURCE_BRANCH into main (shell workflow)"
-          git push origin main
+            git checkout main || git checkout -b main origin/main  # Make sure to check out main first
+            git merge --no-commit --no-ff origin/$SOURCE_BRANCH
+            git commit -m "✅ Merged $SOURCE_BRANCH into main (shell workflow)"
+            git push origin main  # Push to the correct remote branch
 
       - name: Re-lock main branch protection
         uses: actions/github-script@v6
