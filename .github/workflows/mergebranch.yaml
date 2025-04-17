@@ -8,7 +8,6 @@ jobs:
 
   sync_to_develop:
     name: Trigger Main to Develop Merge Workflow
-    needs: merge_release_to_main
     uses: ./.github/workflows/merge-to-develop.yml
     with:
       source_branch: ${{ github.ref_name }}
