@@ -47,7 +47,7 @@ jobs:
       - name: Unlock main branch protection
         if: steps.conflict-check.outputs.can_merge == 'true'
         run: |
-          gh api --method PATCH /repos/${{ github.repository }}/main/protection \
+          gh api --method PATCH /repos/${{ github.repository }}/branches/main/protection \
             -H "Accept: application/vnd.github+json" \
             -f required_status_checks='' \
             -f enforce_admins=false \
