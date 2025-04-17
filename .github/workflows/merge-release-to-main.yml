@@ -18,6 +18,7 @@ jobs:
       - name: Check if main is behind sourceBranch
         id: check_behind
         uses: actions/github-script@v6
+        github-token: ${{ secrets.LOCK_TOKEN }}
         with:
           script: |
             const { owner, repo } = context.repo;
