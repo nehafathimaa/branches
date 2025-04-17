@@ -9,7 +9,7 @@ on:
         type: string
 permissions:
   contents: write
-  administration: write 
+  
 
 jobs:
   merge_release_to_main:
