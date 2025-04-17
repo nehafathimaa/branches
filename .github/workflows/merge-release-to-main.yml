@@ -52,7 +52,6 @@ jobs:
 
 
       - name: Unlock main branch protection
-        if: steps.try_merge.outputs.can_merge == 'true'
         uses: actions/github-script@v6
         with:
           script: |
