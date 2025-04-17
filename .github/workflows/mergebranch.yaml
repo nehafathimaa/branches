@@ -9,7 +9,7 @@ jobs:
     with:
       source_branch: ${{ github.ref_name }}
     secrets:
-      LOCK_TOKEN: ${{ secrets.LOCK_TOKEN }}
+      merge_token: ${{ secrets.merge_token }}
 
   sync_to_develop:
     name: Trigger Main to Develop Merge Workflow
