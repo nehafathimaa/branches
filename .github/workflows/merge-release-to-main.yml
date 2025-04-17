@@ -54,6 +54,7 @@ jobs:
       - name: Unlock main branch protection
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.merge_token }}
           script: |
             const { owner, repo } = context.repo;
 
