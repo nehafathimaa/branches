@@ -4,12 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  merge_release_to_main:
-    uses: ./.github/workflows/merge-release-to-main.yml
-    with:
-      source_branch: ${{ github.ref_name }}
-    secrets:
-      MERGE_TOKEN: ${{ secrets.MERGE_TOKEN }}
+
 
   sync_to_develop:
     name: Trigger Main to Develop Merge Workflow
