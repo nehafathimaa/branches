@@ -76,7 +76,7 @@ jobs:
       - name: Merge and push to main
         if: steps.conflict-check.outputs.can_merge == 'true'
         run: |
-          git checkout -b main-local origin/main
+          git checkout -B main-local origin/main
           git merge --no-commit --no-ff origin/$SOURCE_BRANCH
           git commit -m "✅ Merged $SOURCE_BRANCH into main (shell workflow)"
           git push origin main
