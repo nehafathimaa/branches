@@ -77,12 +77,12 @@ jobs:
         if: steps.conflict-check.outputs.can_merge == 'true'
         run: |
           git checkout -B main-local origin/main
+          git reset --hard
           git merge --no-commit --no-ff origin/$SOURCE_BRANCH
           git commit -m "✅ Merged $SOURCE_BRANCH into main (shell workflow)"
           git push origin main
 
       - name: Re-lock main branch protection
-        if: steps.try_merge.outputs.can_merge == 'true'
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.merge_token }}
