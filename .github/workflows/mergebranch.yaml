@@ -11,5 +11,5 @@ jobs:
     uses: ./.github/workflows/merge-to-develop.yml
     with:
       source_branch: ${{ github.ref_name }}
-    secrets:
-      LOCK_TOKEN: ${{ secrets.LOCK_TOKEN }}
+  #  secrets:
+   #   LOCK_TOKEN: ${{ secrets.LOCK_TOKEN }}
