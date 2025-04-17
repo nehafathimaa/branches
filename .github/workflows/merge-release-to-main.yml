@@ -1,128 +1,77 @@
-name: Merge Release to Main
+name: Merge Release to Main (Shell-Based)
 
 on:
   workflow_call:
     inputs:
       source_branch:
-        description: 'Release branch to merge into main'
         required: true
         type: string
     secrets:
-        LOCK_TOKEN:
-         required: true   
+      merge_token:
+        required: true
 
 jobs:
   merge_release_to_main:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.merge_token }}
+      SOURCE_BRANCH: ${{ inputs.source_branch }}
+
     steps:
-      - name: Check if main is behind sourceBranch
-        id: check_behind
-        uses: actions/github-script@v6
-        github-token: ${{ secrets.LOCK_TOKEN }}
+      - name: Checkout full repo
+        uses: actions/checkout@v3
         with:
-          script: |
-            const { owner, repo } = context.repo;
-            const sourceBranch = ${{ inputs.source_branch }}
+          fetch-depth: 0
 
-            const result = await github.rest.repos.compareCommits({
-              owner,
-              repo,
-              base: 'main',
-              head: sourceBranch
-            });
+      - name: Configure git
+        run: |
+          git config --global user.email "bot@example.com"
+          git config --global user.name "GitHub Action"
 
-            const isBehind = result.data.status === 'behind';
-            core.setOutput("is_behind", isBehind.toString());
+      - name: Fetch branches and prepare
+        run: |
+          git fetch origin main
+          git fetch origin $SOURCE_BRANCH
 
-      - name: Try dry merge to detect conflicts
-        id: try_merge
-        if: steps.check_behind.outputs.is_behind == 'true'
-        github-token: ${{ secrets.LOCK_TOKEN }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const sourceBranch = '${{ github.ref_name }}';
-
-            try {
-              await github.rest.repos.merge({
-                owner,
-                repo,
-                base: 'main',
-                head: sourceBranch,
-                dry_run: true // Note: GitHub API does not officially support this, so we simulate with try/catch
-              });
-
-              core.setOutput("can_merge", "true");
-              console.log("✅ Merge clean. No conflicts.");
-            } catch (error) {
-              if (error.status === 409) {
-                core.setFailed(`❌ Merge conflict between ${sourceBranch} and main`);
-              } else {
-                core.setFailed(`Error checking merge: ${error.message}`);
-              }
-            }
+      - name: Check for conflicts (dry run)
+        id: conflict-check
+        run: |
+          git checkout -b main-local origin/main
+          if git merge --no-commit --no-ff origin/$SOURCE_BRANCH; then
+            echo "can_merge=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Conflict detected"
+            exit 1
+          fi
 
       - name: Unlock main branch protection
-        if: steps.try_merge.outputs.can_merge == 'true'
-        github-token: ${{ secrets.LOCK_TOKEN }}
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { owner, repo } = context.repo;
+        if: steps.conflict-check.outputs.can_merge == 'true'
+        run: |
+          gh api --method PATCH /repos/${{ github.repository }}/branches/main/protection \
+            -H "Accept: application/vnd.github+json" \
+            -f required_status_checks='' \
+            -f enforce_admins=false \
+            -f required_pull_request_reviews='' \
+            -f restrictions='null' \
+            -f allow_force_pushes=true \
+            -f allow_deletions=false
 
-            await github.rest.repos.updateBranchProtection({
-              owner,
-              repo,
-              branch: 'main',
-              required_status_checks: null,
-              enforce_admins: false,
-              required_pull_request_reviews: null,
-              restrictions: null,
-              allow_force_pushes: true,
-              allow_deletions: false
-            });
-
-            console.log("🔓 Main branch protection relaxed for merge.");
-
-      - name: Merge release into main
-        if: steps.try_merge.outputs.can_merge == 'true'
-        github-token: ${{ secrets.LOCK_TOKEN }}
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { owner, repo } = context.repo;
-            const sourceBranch = '${{ github.ref_name }}';
-
-            const result = await github.rest.repos.merge({
-              owner,
-              repo,
-              base: 'main',
-              head: sourceBranch,
-              commit_message: `✅ Automated clean merge of ${sourceBranch} into main`
-            });
+      - name: Merge and push to main
+        if: steps.conflict-check.outputs.can_merge == 'true'
+        run: |
+          git commit -m "✅ Merged $SOURCE_BRANCH into main (shell workflow)"
+          git push origin main
 
       - name: Re-lock main branch protection
-        if: steps.try_merge.outputs.can_merge == 'true'
-        github-token: ${{ secrets.LOCK_TOKEN }}
-        uses: actions/github-script@v6
-        with:
-
-          script: |
-            const { owner, repo } = context.repo;
-            await github.rest.repos.updateBranchProtection({
-              owner,
-              repo,
-              branch: 'main',
-              required_status_checks: null,
-              enforce_admins: true,
-              required_pull_request_reviews: {
-                dismiss_stale_reviews: false,
-                require_code_owner_reviews: false,
-                required_approving_review_count: 0
-              },
-              restrictions: null,
-              allow_force_pushes: false,
-              allow_deletions: false
-            });
+        if: steps.conflict-check.outputs.can_merge == 'true'
+        run: |
+          gh api --method PUT /repos/${{ github.repository }}/branches/main/protection \
+            -H "Accept: application/vnd.github+json" \
+            -f required_status_checks.contexts='[]' \
+            -f enforce_admins=true \
+            -f required_pull_request_reviews.dismiss_stale_reviews=false \
+            -f required_pull_request_reviews.require_code_owner_reviews=false \
+            -f required_pull_request_reviews.required_approving_review_count=0 \
+            -f restrictions='null' \
+            -f allow_force_pushes=false \
+            -f allow_deletions=false
