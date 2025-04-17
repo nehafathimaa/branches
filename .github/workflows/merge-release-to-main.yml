@@ -77,7 +77,8 @@ jobs:
         if: steps.conflict-check.outputs.can_merge == 'true'
         run: |
           git checkout main || git checkout -b main origin/main
-          git merge --no-ff origin/$SOURCE_BRANCH -m "✅ Merged $SOURCE_BRANCH into main (shell workflow)"
+          git merge --no-commit --no-ff origin/$SOURCE_BRANCH
+          git commit -m "✅ Merged $SOURCE_BRANCH into main (shell workflow)"
           git push origin main
 
       - name: Re-lock main branch protection
