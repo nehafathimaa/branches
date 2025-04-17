@@ -37,6 +37,7 @@ jobs:
       - name: Try dry merge to detect conflicts
         id: try_merge
         if: steps.check_behind.outputs.is_behind == 'true'
+        github-token: ${{ secrets.LOCK_TOKEN }}
         uses: actions/github-script@v6
         with:
           script: |
@@ -64,6 +65,7 @@ jobs:
 
       - name: Unlock main branch protection
         if: steps.try_merge.outputs.can_merge == 'true'
+        github-token: ${{ secrets.LOCK_TOKEN }}
         uses: actions/github-script@v6
         with:
           script: |
@@ -85,6 +87,7 @@ jobs:
 
       - name: Merge release into main
         if: steps.try_merge.outputs.can_merge == 'true'
+        github-token: ${{ secrets.LOCK_TOKEN }}
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -102,6 +105,7 @@ jobs:
 
       - name: Re-lock main branch protection
         if: steps.try_merge.outputs.can_merge == 'true'
+        github-token: ${{ secrets.LOCK_TOKEN }}
         uses: actions/github-script@v6
         with:
 
