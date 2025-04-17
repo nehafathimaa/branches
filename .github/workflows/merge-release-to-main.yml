@@ -80,7 +80,7 @@ jobs:
               git stash --include-untracked  # Stash local changes to avoid merge conflicts
             git merge --no-commit --no-ff origin/$SOURCE_BRANCH
             git commit -m "✅ Merged $SOURCE_BRANCH into main (shell workflow)"
-           git push origin main  # Push the changes to remote
+            git push https://${{ secrets.merge_token }}@github.com/${{ github.repository }}.git main  # Push the changes to remote
             git stash pop  # Optionally, apply the stashed changes back to the working directory
 
       - name: Re-lock main branch protection
