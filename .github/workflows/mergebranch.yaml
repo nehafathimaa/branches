@@ -13,4 +13,4 @@ jobs:
     with:
       source_branch: ${{ github.ref_name }}
     secrets:
-      LOCK_TOKEN: ${{ secrets.MB_TOKEN }}
+      MB_TOKEN: ${{ secrets.MB_TOKEN }}
