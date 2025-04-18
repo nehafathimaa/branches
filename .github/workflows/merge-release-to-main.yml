@@ -65,7 +65,7 @@ jobs:
             });
             console.log("🔓 Branch protection unlocked.");
             return { unlocked: true };
-        result-encoding: string
+            result-encoding: string
 
       - name: Merge and push to main
         if: steps.conflict-check.outputs.can_merge == 'true'
