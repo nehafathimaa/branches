@@ -58,7 +58,7 @@ jobs:
               branch: 'main',
               required_status_checks: null,
               enforce_admins: false,
-              require_pull_request_before_merging: null ,
+
               required_pull_request_reviews: null,
               restrictions: null,
               allow_force_pushes: true,
@@ -77,27 +77,4 @@ jobs:
            git merge --ff-only origin/$SOURCE_BRANCH
            git push https://${{ secrets.REPO_ACCESS }}@github.com/${{ github.repository }}.git main
 
-      - name: 🔒 Re-lock main branch protection if it was unlocked
-        if: always() && steps.unlock.outputs.unlock_branch == 'true'
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.REPO_ACCESS }}
-          script: |
-            const { owner, repo } = context.repo;
-            await github.rest.repos.updateBranchProtection({
-              owner,
-              repo,
-              branch: 'main',
-              required_status_checks: null,
-              enforce_admins: true,
-              required_pull_request_reviews: {
-                dismiss_stale_reviews: false,
-                require_code_owner_reviews: false,
-                required_approving_review_count: 0,
-              },
-              restrictions: null,
-              allow_force_pushes: false,
-              allow_deletions: false,
-              lock_branch: true
-            });
-            console.log("🔒 Branch protection re-locked.");
+
