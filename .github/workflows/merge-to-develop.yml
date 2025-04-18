@@ -7,7 +7,7 @@ on:
         required: true
         type: string
     secrets:
-      MB_TOKEN:
+      REPO_ACCESS:
         required: true
 
 jobs:
@@ -34,12 +34,12 @@ jobs:
         run: |
           git checkout develop || git checkout -b develop origin/develop
           git merge origin/main -m "Merging main into develop automatically"
-          git push https://${{ secrets.MB_TOKEN }}@github.com/${{ github.repository }}.git develop
+          git push https://${{ secrets.REPO_ACCESS }}@github.com/${{ github.repository }}.git develop
 
       - name: Create audit PR (optional trace)
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.MB_TOKEN }}
+          github-token: ${{ secrets.REPO_ACCESS }}
           script: |
             const { repo, owner } = context.repo;
             const branchName = '${{ inputs.source_branch }}'.split('/').pop();
