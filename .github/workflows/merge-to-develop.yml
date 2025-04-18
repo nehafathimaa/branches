@@ -1,4 +1,4 @@
-name: Merge main to develop
+name: Merge Main to Develop
 
 on:
   workflow_call:
@@ -10,26 +10,31 @@ on:
       MB_TOKEN:
         required: true
 
-
 jobs:
   merge_main_to_develop:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Merge main into develop
-        uses: actions/github-script@v6
+      - name: Checkout full repo
+        uses: actions/checkout@v3
         with:
-          github-token: ${{ secrets.MB_TOKEN }}
-          script: |
-            const { repo, owner } = context.repo;
+          fetch-depth: 0
 
-            await github.rest.repos.merge({
-              owner,
-              repo,
-              base: 'develop',
-              head: 'main',
-              commit_message: 'Merging main into develop automatically'
-            });
+      - name: Configure git
+        run: |
+          git config --global user.email "bot@example.com"
+          git config --global user.name "GitHub Action"
+
+      - name: Fetch branches and prepare
+        run: |
+          git fetch origin main
+          git fetch origin develop
+
+      - name: Merge main into develop
+        run: |
+          git checkout develop || git checkout -b develop origin/develop
+          git merge origin/main -m "Merging main into develop automatically"
+          git push https://${{ secrets.MB_TOKEN }}@github.com/${{ github.repository }}.git develop
 
       - name: Create audit PR (optional trace)
         uses: actions/github-script@v6
