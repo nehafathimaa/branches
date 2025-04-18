@@ -76,7 +76,7 @@ jobs:
            git push https://${{ secrets.REPO_ACCESS }}@github.com/${{ github.repository }}.git main  
 
       - name: 🔒 Re-lock main branch protection if it was unlocked
-        if: always() 
+        if: always() && steps.unlock.outputs.result == 'true'
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.REPO_ACCESS }}
