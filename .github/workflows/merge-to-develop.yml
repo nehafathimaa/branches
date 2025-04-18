@@ -15,29 +15,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout full repo
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Configure git
-        run: |
-          git config --global user.email "bot@example.com"
-          git config --global user.name "GitHub Action"
-
-      - name: Fetch branches and prepare
-        run: |
-          git fetch origin main
-          git fetch origin develop
-
-      - name: Merge main into develop (allow conflicts)
-        run: |
-          git checkout develop || git checkout -b develop origin/develop
-          git merge origin/main || echo "Merge conflict detected, proceeding anyway"
-
-      - name: Push the branch (even with conflicts)
-        run: |
-          git push https://${{ secrets.REPO_ACCESS }}@github.com/${{ github.repository }}.git develop
 
       - name: Create audit PR (optional trace)
         uses: actions/github-script@v6
@@ -55,9 +32,3 @@ jobs:
               base: 'develop',
             });
 
-            await github.rest.issues.addLabels({
-              owner,
-              repo,
-              issue_number: pr.data.number,
-              labels: ['auto-pr']
-            });
