@@ -44,14 +44,14 @@ jobs:
             exit 1
           fi
 
-
       - name: Unlock main branch protection
+        if: steps.conflict-check.outputs.can_merge == 'true'
+        id: unlock
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.MERGE_TOKEN }}
           script: |
             const { owner, repo } = context.repo;
-
             await github.rest.repos.updateBranchProtection({
               owner,
               repo,
@@ -63,21 +63,21 @@ jobs:
               allow_force_pushes: true,
               allow_deletions: false
             });
-
-            console.log("🔓 Main branch protection relaxed for merge.");
-
+            console.log("🔓 Branch protection unlocked.");
+            return { unlocked: true };
+        result-encoding: string
 
       - name: Merge and push to main
         if: steps.conflict-check.outputs.can_merge == 'true'
         run: |
            git checkout main || git checkout -b main origin/main  
-           git stash --include-untracked  # Stash local changes to avoid merge conflicts
+           git stash --include-untracked
            git merge --no-commit --no-ff origin/$SOURCE_BRANCH
            git commit -m "✅ Merged $SOURCE_BRANCH into main (shell workflow)"
-           git push https://${{ secrets.merge_token }}@github.com/${{ github.repository }}.git main  
- 
+           git push https://${{ secrets.MERGE_TOKEN }}@github.com/${{ github.repository }}.git main  
 
-      - name: Re-lock main branch protection
+      - name: 🔒 Re-lock main branch protection if it was unlocked
+        if: always() && steps.unlock.outputs.result == 'true'
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.MERGE_TOKEN }}
@@ -98,3 +98,4 @@ jobs:
               allow_force_pushes: false,
               allow_deletions: false
             });
+            console.log("🔒 Branch protection re-locked.");
