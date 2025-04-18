@@ -52,11 +52,17 @@ jobs:
           github-token: ${{ secrets.REPO_ACCESS }}
           script: |
             const { owner, repo } = context.repo;
-              await github.rest.repos.unlockBranch({
+            await github.rest.repos.updateBranchProtection({
               owner,
               repo,
-              branch: 'main'
-    
+              branch: 'main',
+              required_status_checks: null,
+              enforce_admins: false,
+              required_pull_request_reviews: null,
+              restrictions: null,
+              allow_force_pushes: true,
+              allow_deletions: false,
+              lock_branch: false
             });
             console.log("🔓 Branch protection unlocked.");
             core.setOutput('unlock_branch', 'true');
