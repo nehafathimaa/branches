@@ -30,13 +30,13 @@ jobs:
           git fetch origin main
           git fetch origin develop
 
-      - name: Merge main into develop
+      - name: Merge main into develop (with conflicts)
         run: |
           git checkout develop || git checkout -b develop origin/develop
-          git merge origin/main -m "Merging main into develop automatically"
+          git merge origin/main -m "Merging main into develop automatically"  
           git push https://${{ secrets.REPO_ACCESS }}@github.com/${{ github.repository }}.git develop
 
-      - name: Create audit PR (optional trace)
+      - name: Create PR for manual resolution (even if conflict)
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.REPO_ACCESS }}
@@ -48,8 +48,8 @@ jobs:
               title: `Main to develop - ${branchName}`,
               owner,
               repo,
-              head: 'develop',
-              base: 'develop'
+              head: 'main',  
+              base: 'develop' 
             });
 
             await github.rest.issues.addLabels({
