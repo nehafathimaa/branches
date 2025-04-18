@@ -61,7 +61,7 @@ jobs:
 
               required_pull_request_reviews: null,
               restrictions: null,
-              allow_force_pushes: true,
+              
               allow_deletions: false,
               lock_branch: false
             });
