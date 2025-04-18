@@ -7,14 +7,14 @@ on:
         required: true
         type: string
     secrets:
-      MERGE_TOKEN:
+      ACCESS_TOKEN:
         required: true
 
 jobs:
   merge_release_to_main:
     runs-on: ubuntu-latest
     env:
-      github-token: ${{ secrets.MERGE_TOKEN }}
+      github-token: ${{ secrets.ACCESS_TOKEN }}
       SOURCE_BRANCH: ${{ inputs.source_branch }}
 
     steps:
@@ -49,7 +49,7 @@ jobs:
         id: unlock
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.MERGE_TOKEN }}
+          github-token: ${{ secrets.ACCESS_TOKEN }}
           script: |
             const { owner, repo } = context.repo;
             await github.rest.repos.updateBranchProtection({
@@ -79,7 +79,7 @@ jobs:
         if: always() && steps.unlock.outputs.result == 'true'
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.MERGE_TOKEN }}
+          github-token: ${{ secrets.ACCESS_TOKEN }}
           script: |
             const { owner, repo } = context.repo;
             await github.rest.repos.updateBranchProtection({
