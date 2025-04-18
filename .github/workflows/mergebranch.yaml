@@ -18,4 +18,5 @@ jobs:
     with:
       source_branch: ${{ github.ref_name }}
     secrets:
-      MB_TOKEN: ${{ secrets.MB_TOKEN }}
+      REPO_ACCESS: ${{ secrets.REPO_ACCESS }}
+
