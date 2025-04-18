@@ -64,6 +64,7 @@ jobs:
               allow_deletions: false
             });
             console.log("🔓 Branch protection unlocked.");
+            echo "unlock_branch=true" >> $GITHUB_OUTPUT
 
 
       - name: Merge and push to main
@@ -75,7 +76,7 @@ jobs:
            git push https://${{ secrets.REPO_ACCESS }}@github.com/${{ github.repository }}.git main
 
       - name: 🔒 Re-lock main branch protection if it was unlocked
-        if: always() && steps.unlock.outputs.result == 'true'
+        if: always() && steps.unlock.outputs.unlock_branch == 'true'
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.REPO_ACCESS }}
