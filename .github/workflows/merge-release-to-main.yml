@@ -64,7 +64,7 @@ jobs:
               allow_deletions: false
             });
             console.log("🔓 Branch protection unlocked.");
-            echo "unlock_branch=true" >> $GITHUB_OUTPUT
+            core.setOutput('unlock_branch', 'true');
 
 
       - name: Merge and push to main
