@@ -58,6 +58,7 @@ jobs:
               branch: 'main',
               required_status_checks: null,
               enforce_admins: false,
+              require_pull_request_before_merging: null ,
               required_pull_request_reviews: null,
               restrictions: null,
               allow_force_pushes: true,
