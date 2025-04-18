@@ -22,7 +22,7 @@ jobs:
           github-token: ${{ secrets.REPO_ACCESS }}
           script: |
             const { repo, owner } = context.repo;
-            const branchName = '${{ inputs.source_branch }}'.split('/').pop();
+            const branchName = '${{ inputs.source_branch }}';
 
             const pr = await github.rest.pulls.create({
               title: `Main to develop - ${branchName}`,
