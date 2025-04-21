@@ -56,13 +56,6 @@ jobs:
               owner,
               repo,
               branch: 'main',
-              required_status_checks: null,
-              enforce_admins: false,
-              require_pull_request_before_merging: null ,
-              required_pull_request_reviews: null,
-              restrictions: null,
-              allow_force_pushes: true,
-              allow_deletions: false,
               lock_branch: false
             });
             console.log("🔓 Branch protection unlocked.");
@@ -88,16 +81,6 @@ jobs:
               owner,
               repo,
               branch: 'main',
-              required_status_checks: null,
-              enforce_admins: true,
-              required_pull_request_reviews: {
-                dismiss_stale_reviews: false,
-                require_code_owner_reviews: false,
-                required_approving_review_count: 0,
-              },
-              restrictions: null,
-              allow_force_pushes: false,
-              allow_deletions: false,
               lock_branch: true
             });
             console.log("🔒 Branch protection re-locked.");
