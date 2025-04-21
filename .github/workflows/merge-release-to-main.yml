@@ -74,4 +74,25 @@ jobs:
            git merge --ff-only origin/$SOURCE_BRANCH
            git push https://${{ secrets.REPO_ACCESS }}@github.com/${{ github.repository }}.git main
 
+      - name: 🔒 Re-lock main branch protection if it was unlocked
+        if: always() && steps.unlock.outputs.unlock_branch == 'true'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.REPO_ACCESS }}
+          script: |
+            const { owner, repo } = context.repo;
+            await github.rest.repos.updateBranchProtection({
+              owner,
+              repo,
+              branch: 'main',
+              required_status_checks: null,
+              enforce_admins: true,
+              required_pull_request_reviews: {
+                required_approving_review_count: 1
+              },              
+              restrictions: null,
+              lock_branch: true
+            });
+            console.log("🔒 Branch protection re-locked.");
+
 
